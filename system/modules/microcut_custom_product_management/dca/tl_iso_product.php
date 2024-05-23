@@ -1,6 +1,6 @@
 <?php
 
-use IsotopeBcs\Backend\Product\LabelBcs;
+use IsotopeBcs\Backend\Product\BcsLabel;
 
 $table = Isotope\Model\Product::getTable();
 
