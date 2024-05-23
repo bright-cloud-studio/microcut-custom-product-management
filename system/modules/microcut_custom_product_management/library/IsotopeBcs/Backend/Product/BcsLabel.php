@@ -25,11 +25,6 @@ class BcsLabel extends \Label
 
     public function generate($row, $label, $dc, $args)
     {
-        echo "hit";
-        die();
-
-
-
       
         $objProduct = Product::findByPk($row['id']);
 
