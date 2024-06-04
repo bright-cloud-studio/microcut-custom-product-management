@@ -19,6 +19,7 @@ use Contao\StringUtil;
 use Isotope\Model\Product;
 use Isotope\Model\Label;
 
+use Isotope\Model\ProductPrice;
 use Isotope\Model\ProductType;
 
 class BcsLabel extends Label
@@ -127,6 +128,73 @@ class BcsLabel extends Label
 
         return $objProduct->name;
     }
+    
+    
+    
+    
+    private function generatePrice($row)
+    {
+        $objPrice = null;
+        $fromPrice = false;
+
+        if ($row['pid'] == 0
+            && null !== ($objProductType = ProductType::findByPk($row['type']))
+            && $objProductType->hasVariants()
+            && \in_array('price', $objProductType->getVariantAttributes())
+        ) {
+            $variantIds = Database::getInstance()->prepare("SELECT id FROM tl_iso_product WHERE pid=? AND language=''")->execute($row['id'])->fetchEach('id');
+
+            if (empty($variantIds)) {
+                return '';
+            }
+
+            $objPrices = ProductPrice::findPrimaryByProductIds($variantIds);
+
+            if (null !== $objPrices) {
+                $fltPrice = null;
+                $arrPrices = [];
+
+                /** @var ProductPrice $price */
+                foreach ($objPrices as $price) {
+                    $fltNew = $price->getValueForTier($price->getLowestTier());
+                    $arrPrices[] = $fltNew;
+
+                    if (null === $fltPrice || $fltNew < $fltPrice) {
+                        $fltPrice = $fltNew;
+                        $objPrice = $price;
+                    }
+                }
+
+                if (\count(array_unique($arrPrices)) > 1) {
+                    $fromPrice = true;
+                }
+            }
+        }
+
+        if (null === $objPrice) {
+            $objPrice = ProductPrice::findPrimaryByProductId($row['id']);
+        }
+
+        if (null !== $objPrice) {
+            try {
+                /** @var \Isotope\Model\TaxClass $objTax */
+                $objTax = $objPrice->getRelated('tax_class');
+                $strTax = (null === $objTax ? '' : ' (' . $objTax->getName() . ')');
+
+                if ($fromPrice) {
+                    return sprintf($GLOBALS['TL_LANG']['MSC']['priceRangeLabel'], $objPrice->getValueForTier(1)) . $strTax;
+                }
+
+                return $objPrice->getValueForTier(1) . $strTax;
+            } catch (\Exception $e) {
+                return '';
+            }
+        }
+
+        return '';
+    }
+    
+    
     
     
 }
