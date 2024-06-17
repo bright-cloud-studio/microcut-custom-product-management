@@ -16,6 +16,8 @@ use Contao\Environment;
 use Contao\Image;
 use Contao\StringUtil;
 
+use Haste\Util\Format;
+
 use Isotope\Model\Product;
 use Isotope\Model\Label;
 
@@ -192,6 +194,25 @@ class BcsLabel extends Label
         }
 
         return '';
+    }
+    
+    
+    
+    
+    
+    private function generateVariantFields($label, $objProduct, $dc)
+    {
+        $attributes = [];
+
+        foreach ($GLOBALS['TL_DCA'][$dc->table]['list']['label']['variantFields'] as $variantField) {
+            $attributes[] = sprintf(
+                '<strong>%s:</strong>&nbsp;%s',
+                Format::dcaLabel($dc->table, $variantField),
+                Format::dcaValue($dc->table, $variantField, $objProduct->$variantField)
+            );
+        }
+
+        return ($label ? $label . '<br>' : '') . implode(', ', $attributes);
     }
     
     
