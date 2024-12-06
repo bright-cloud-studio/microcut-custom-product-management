@@ -196,10 +196,6 @@ class BcsLabel extends Label
         return '';
     }
     
-    
-    
-    
-    
     private function generateVariantFields($label, $objProduct, $dc)
     {
         $attributes = [];
